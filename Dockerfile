@@ -9,6 +9,6 @@ WORKDIR /opt
 
 ENV PYTHONPATH $PYTHONPATH:/opt
 
-#ENTRYPOINT ["/bin/bash", "entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "entrypoint.sh"]
 
-#CMD ["python", "main.py"]
+CMD ["python", "main.py"]
