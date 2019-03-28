@@ -1,5 +1,8 @@
+from log_config import log
+
+
 def main() -> None:
-    print("hello world.")
+    log.debug("hello world.")
 
 
 def hypothesis_example():

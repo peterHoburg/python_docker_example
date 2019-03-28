@@ -4,10 +4,10 @@ COPY ["requirements.txt", "requirements.txt"]
 RUN ["pip", "install", "-r", "requirements.txt"]
 
 
-ADD . /opt
-WORKDIR /opt
+
 
 ENV PYTHONPATH $PYTHONPATH:/opt
+ENV RACK_ENVIRON debug
 
 ENTRYPOINT ["/bin/bash", "entrypoint.sh"]
 
