@@ -16,7 +16,7 @@ stream_handler.setFormatter(logging.Formatter("%(asctime)s - %(threadName)s - %(
 
 log.addHandler(stream_handler)
 
-if os.environ.get("RACK_ENVIRON") == "debug":
+if os.environ.get("DEBUG") == "true":
     logging.disable(logging.DEBUG)
 else:
     log.setLevel(logging.INFO)

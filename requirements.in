@@ -1,5 +1,3 @@
-pip-tools
-ipdb
-pytest
-hypothesis
-mypy
+requests
+
+# pip install pip-tools; pip-compile --rebuild --upgrade --generate-hashes --allow-unsafe requirements.in; pip-compile --rebuild --upgrade --generate-hashes --allow-unsafe requirements-dev.in
