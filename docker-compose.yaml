@@ -1,8 +1,35 @@
 version: "3.8"
 services:
-  webapp:
+  test:
     build:
-      context: ./dir
-      dockerfile: Dockerfile-alternate
+      context: .
+      dockerfile: Dockerfile
       args:
-        buildno: 1
+        ENVIRONMENT: "test"
+        DEGUB: "true"
+        DEV: "true"
+    command: pytest
+    volumes:
+      - .:/opt
+    depends_on:
+      - postgres
+    networks:
+      - test_network
+
+  postgres:
+    image: postgres:12
+    volumes:
+      - ./postgres_schema.sql:/docker-entrypoint-initdb.d/production_schema.sql
+    ports:
+      - "5431:5431"
+    environment:
+      - PGPORT=5431
+      - POSTGRES_DB=test
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
+    networks:
+      - test_network
+
+networks:
+  test_network:
+    driver: bridge

@@ -1,6 +1,11 @@
+# Needed
+Install docker
+
+Install docker-compose https://docs.docker.com/compose/install/
+
 # python_docker_example
 
-## Versions 
+## Versions
 PEP 440
 
 Version regex:
@@ -16,8 +21,8 @@ PEP 8
     * Exception names end with `Error`
     * Function names `lowercase_with_underscores`
     * Private Attributes or methods '_underscore_before_name'
-    
-### Auto PEP 8 
+
+### Auto PEP 8
 ```
 pip install pep8
 pep8 file_name.py
