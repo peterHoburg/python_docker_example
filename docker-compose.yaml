@@ -1,5 +1,16 @@
 version: "3.8"
 services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ENVIRONMENT: "test"
+        DEGUB: "true"
+        DEV: "true"
+      command: pytest
+      volumes:
+        - .:/opt
   test:
     build:
       context: .
