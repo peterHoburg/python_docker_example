@@ -45,13 +45,11 @@ coding them in a .env file, config file, Dockerfile, or any other file that is i
 build. The correct way to pass credentials to a container is through run time variables. This is
 how hosting services do it. For example: If you are running a docker container using AWS docker service
 (ECS) AWS will pass the IAM (AWS username and password) into the running container via environment
-variables that do NOT persist over restarts[^fn0].
+variables that do NOT persist over restarts<sup id="a1">[1](#f1)</sup>.
 
 To do this yourself use `docker run -e <key>=<value> ...` This is explained in more depth in the
 docker run section of the README.
 
-[^fn0]: This is not 100% accurate. AWS tricks you into thinking the IAM creds are Env Vars,
-but it is actually making an API call, however your code can't tell the difference.
 
 ## Basics
 
@@ -292,3 +290,7 @@ Pycharm
 VScode
 VIM
 
+
+# Footnotes
+<b id="f1">1</b> This is not 100% accurate. AWS tricks you into thinking the IAM creds are Env Vars,
+but it is actually making an API call, however your code can't tell the difference.[↩](#a1)
