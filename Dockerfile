@@ -27,6 +27,7 @@ ENV DEV="${DEV}"
 #   every time a container is run.
 # WARNING: This script uses the ARG/ENV DEV value to decide if the requirements-dev.txt should be installed
 COPY requirements-dev.txt requirements-dev.txt
+COPY install_dev_requirements.sh install_dev_requirements.sh
 RUN bash install_dev_requirements.sh
 
 # Always have this as far down as you can. If anything being coppied in this step changes all steps

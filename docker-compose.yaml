@@ -5,12 +5,15 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        ENVIRONMENT: "test"
+        ENVIRONMENT: "local"
         DEGUB: "true"
         DEV: "true"
-      command: pytest
-      volumes:
-        - .:/opt
+    command: /bin/bash
+    tty: true
+    stdin_open: true
+    volumes:
+      - .:/opt
+
   test:
     build:
       context: .
