@@ -11,7 +11,7 @@ WORKDIR /opt
 ENV PYTHONPATH $PYTHONPATH:/opt
 
 COPY ["requirements.txt", "requirements.txt"]
-RUN ["pip", "install", "-r", "requirements.txt"]
+RUN ["pip", "install", "--require-hashes", "-r", "requirements.txt"]
 
 # These are only availiable during a docker build to have them persist into a docker run use ENV
 ARG ENVIRONMENT=local
