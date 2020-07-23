@@ -24,13 +24,14 @@ when running code. CAUTION: When using a .env file you MUST add it to your .dock
 files and any other ignore list for software that may accidentally sync it to a remote server.
 
 For more docker specific examples and an explanation on how I manage secrets in this python example
-project see [here](#pip-tools).
+project see [here](#common-mistakes).
 
 # Docker
 This is a short overview that focuses on some of the most widely used pieces of docker. This is not
-a comprehensive docker guide, but rather a guide on what I think the
+a comprehensive docker guide, but rather a guide on what you need to know to start using docker
+in production. If you would like to delve into docker further start by [reading the docs](https://docs.docker.com/)
 
-## COMMON MISTAKES
+## Common Mistakes
 
 ### Secrets
 Do NOT hard code any secrets in a dockerfile or any other file in ANY git repo. The best practice
@@ -38,59 +39,74 @@ is to use a secret management solution (AWS secrets, GCP secrets, Azure key-vaul
 values to environment variables in the ENTRYPOINT. This ensures if your docker container gets
 released to the public no one can access anything private.
 
-
 ### Credentials (AWS, Azure, GCP, ect...)
 Do NOT include your IAM or other credentials in your container! This includes hard
-coding them in a .env file, config file, Dockerfile, or any other file that is included in your docker
-build. The correct way to pass credentials to a container is through run time variables. This is
-how hosting services do it. For example: If you are running a docker container using AWS docker service
-(ECS) AWS will pass the IAM (AWS username and password) into the running container via environment
-variables that do NOT persist over restarts<sup id="a1">[1](#f1)</sup>.
+coding them in a .env file (that is not included in a .dockerignore), config file, Dockerfile,
+or any other file that is included in your docker build. The correct way to pass credentials to a
+container is through run time variables. This is how hosting services do it. For example: If you
+are running a docker container using AWS docker service (ECS) AWS will pass the IAM
+(AWS username and password) into the running container via environment variables that do NOT
+persist over restarts<sup id="a1">[1](#f1)</sup>.
 
 To do this yourself use `docker run -e <key>=<value> ...` This is explained in more depth in the
-docker run section of the README.
-
+[docker run section](#run) of the README.
 
 ## Basics
 
-Docker concepts can be described in terms of VMs and OSs. A docker `image` can be thought of as the OS that
-runs in a VM (`contianer`). You choose the OS, install everything you need and run your code in it.
+### Terminology
+* Image: The basis of a container. Does not have state. Public images can be found on the [docker hub](https://hub.docker.com/).
+* Container: Runtime instance of an image. Image + execution environment + instructions.
+* Docker runtime/desktop: The program that runs your container.
+
+For more terminology see the [docker glossary](https://docs.docker.com/glossary/)
+
+### Overview
+Docker concepts can be described in terms of VMs and OSs. A docker `image` can be thought of as the base OS that
+runs in a VM. You choose the OS, install everything you need and run your code in it then run your code.
+This would be the container. Base os + installing stuff + instructions on how to running your code.
 The docker runtime is analogues to the VM program (VMWare or other).
 
 ### Phases
 Docker has two main phases, building a docker container, and running the docker container. You can
-also Push a docker container to a remote docker repo to run on a hosted VM.
+also Push a docker container to a remote docker repo to run on a hosted machine.
 
 The two main ways you execute the docker run and build phases are using either the normal docker
 runtime via the CLI: `docker build ...`, `docker run ...` or using the docker-compose
-utility. See the docker-compose section for more details.
+utility. See the [docker-compose](#docker-compose) section for more details.
 
 #### Build
 During the `build` phase the docker runtime parses your Dockerfile, creates layers based on the steps
-contained within, executes the steps, and saves the resulting container.
+contained within, executes the steps, and saves the resulting image to be later run as a container
+by the docker runtime.
 
-In practice this means if any changes are made to files or configurations that are put into a build layer
-you must rebuild the container for those changes to take effect.
+Practically docker build take your dockerfile, gets the image you specified in the FROM statement, executes the
+remaining steps and creates a new image. All images are built from a dockerfile and create a new image
+which in turn can be used in another dockerfile to make a new image ect... or run as a container.
+
+In practice this means if any changes are made to files or configurations that are put into a build
+layer you must rebuild the container for those changes to take effect. Once an image is built it
+does not change. So when you reboot a container the container state will be reverted back to the state
+of the image used to run the container.
 
 NOTE: The major exception to this is when copying your source files over to the docker container
 (`ADD . /opt` in the example Dockerfile) if you are mounting your source code as a volume during
 `docker run` (`docker run -v /$PWD:/opt` in the `start_locally.sh` example script) any code changes
-you make will be reflected in the container immediately upon saving. You will not even have to restart
-the running container.
+you make will be reflected in the container immediately. You will not even have to restart the
+running container.
 
-**A common build command is:**
-`docker build -t local:example .`
+**Common build command:**
+`docker build -t example:local .`
 
 `-t` Name and optionally a tag in the ‘name:tag’ format.
 
-`local:example` is the `name:tag`
+`example:local` is the `name:tag`
 
 `.` is telling docker to use the "Dockerfile" in the current directory. This could be a path to any
 directory. `~/example_project/Dockerfile` for example.
 
 #### Run
 
-`docker run` sends the built docker container (image) to the docker runtime. The runtime loads the layers
+`docker run` sends the built docker image to the docker runtime creating a container. The runtime loads the layers
 that were built and executes the `ENTRYPOINT` and `CMD` clauses in your dockerfile. You can overwrite
 those at runtime like so
 `docker run <optional --entrypoint [new command]> <other flags/arguments> [docker_image_name] <optional overide for CMD">`
@@ -110,52 +126,57 @@ environment, mostly, isolated from your system.
 
 
 #### Push
-docker push is very similar to git push. After building a docker container locally you "push" it to
+docker push is very similar to git push. After building a docker image locally you "push" it to
 a remote docker store; either privately hosted on a cloud provider, or the docker hub public store if you
-want your container publicly available.
+want your container to be publicly available.
 
 Each store has slightly different ways of authenticating before pushing. Please reference the relevant
 docs.
 
 ### Dockerfile
 This is one of the most important pieces of any dockerized project. It is the blueprint that all
-of your images and containers are built from. A dockerfile must contain some basic pieces; FROM,
+of your images are built from and containers run. A dockerfile must contain some basic pieces; FROM,
 ENTRYPOINT, and CMD. Entrypoint can be excluded, but is almost always uses.
 
 #### Syntax overview
-Each line start with a keyword. Common ones are `FROM, WORKDIR, ENV, COPY, RUN, ARG, ADD, ENTRYPOINT, CMD`.
-Following the keyword you either plain strings or JSON lists telling the keyword what to do. Many of
-the keywords work with both JSON array syntax (exec form) and the shell form. Example:
+Each line start with a keyword. Common ones are
 
-`CMD ["python", "main.py"]` JSON array AKA exec form. This is the preferred form for commands that support it.
+`FROM, WORKDIR, ENV, COPY, RUN, ARG, ADD, ENTRYPOINT, CMD`.
+
+Following each keyword you have either plain strings (shell form) or a JSON list (exec form) telling
+ the keyword what to do. Many of the keywords accept exec and shell form. Example:
+
+`CMD ["python", "main.py"]` JSON array (exec form). This is the preferred form for commands that support it.
 
 NOTE: The exec form uses double quotes " not single '
 
 `CMD python main.py` shell form.
 
 #### FROM clause
-This is the "OS" (more accurately describes an environment or `base image`) that you will install stuff on
-top of and eventually run your code in. This does not have to be a bear bones linux distribution (OS)
-(Debian, Ubuntu ect...) but can be something built on top of one.
-In this project the python image is being used. In reality the python image is just Debian with some
+This is the "OS" (`image`) that you will add to and eventually run your code using. This does not
+have to be a barebones linux distribution (Debian, Ubuntu ect...) but can be another image built on
+top of a distro. In this project the python image is used. The python image is just Debian with some
 libraries/packages installed on top of it to enable python run out of the box.
 
-The best way to select the `base image` you want to use is to go to [DockerHub](https://hub.docker.com/)
+The best way to select the `image` you want to build on is to go to [DockerHub](https://hub.docker.com/)
 and search for the language, framework, db, or other that you will be using.
-These base images are usually ["Docker Official Images"](https://docs.docker.com/docker-hub/official_images/)
+These images are usually ["Docker Official Images"](https://docs.docker.com/docker-hub/official_images/)
 and will "Just Work"TM.
 
 #### ENTRYPOINT clause
 ENTRYPOINT is one of two main clauses that are executed during the `docker run` phase. ENTRYPOINT
-gives specifies a command that is executed just before the `CMD` clause.
+specifies a command that is executed just before the `CMD` clause.
 
-ENTRYPOINT is frequently used to finish setting up the environment. This can involve setting
+ENTRYPOINT is frequently used to finish setting up the runtime environment. This can involve setting
 environment variables containing secrets whether they be DB secrets, encryption keys, or something
 else you do not want the entire world to know.
 
+NOTE: Anything set during the `docker run` phase will not persist across docker container instances.
+This makes setting secrets in ENTRYPOINT safe. DO NOT hard code the secrets in whatever script
+ENTRYPOINT calls! Use the entrypoint script to pull secrets from a secrets manager.
+
 #### CMD clause
 [Docs](https://docs.docker.com/engine/reference/builder/#cmd)
-
 
 This is where you finally get to run your code! The CMD clause is the last thing docker executes, and
 is used to run your project. The Dockerfile CMD can be overwritten in `docker run` phase, see docker
@@ -163,13 +184,6 @@ run section for more details.
 
 A normal use would be: `CMD ["python", "main.py"]` This tells docker you want to have the python
 runtime execute your main.py file.
-
-### Image
-
-
-### Container
-
-### Docker runtime
 
 ### docker-compose
 docker-compose uses an additional YAML file to help streamline spinning up, linking, and tearing
