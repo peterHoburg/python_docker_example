@@ -1,54 +1,54 @@
 # Setup
-To follow this readme and run this project you only need to install docker and docker-compose.
-An IDE is optional.
+To follow this readme and run this project, first install docker and docker-compose.
+Please note that an IDE is optional.
 
 [Installing docker](https://docs.docker.com/get-docker/)
 
 [Installing docker-compose](https://docs.docker.com/compose/install/)
 
 # General Best practices
-Here are some best practices that can be applied to more than just python or docker
+The best practices outlined in this documentation can be applied to more than Docker and Docker-compose.
 
 ## Secrets management
-NEVER write any secret or credential down anywhere that could be synced to any cloud service. This
-includes GIT, Docker, Google Drive, Dropbox, or others.
+When deciding where to store secrets or credentials, the first consideration should be whether the information will be synced to a cloud service. Common services which would sync information to the cloud
+include GIT, Docker, Google Drive, and Dropbox.
 
-Instead, you should store secrets in your chosen cloud service providers secrets manager. To access
-those secrets you will need a set of credentials. Those should be stored in your cloud providers
-CLI's default location on your local machine, or another location that you are certain will never
-be synced to a remote service. `~/.aws/credentials` is an example of such a location on a linux
-machine using the AWS CLI.
+A preferable option instead would be to utilize your cloud service's secrets manager, as secrets managers require a second set of credentials for access. Those credentials, then, could be stored in your cloud provider's
+CLI's default location on your local machine or another location which you are certain will never
+be synced to a remote service. `~/.aws/credentials` is an example of such a location on a Linux
+machine using the AWS CLI. ***REWRITE THIS SENTENCE****
 
-Alternatively you can store some secrets in a .env file that is loaded automatically into your environment
-when running code. CAUTION: When using a .env file you MUST add it to your .dockerignore and .gitignore
-files and any other ignore list for software that may accidentally sync it to a remote server.
+Alternatively, you could store some secrets in a .env file which is then loaded automatically into your environment
+while executing code. When using this method, a note of caution: using a .env file requires that you add the file to .dockerignore and .gitignore
+files and other ignore lists to ensure that no software unintentionally syncs it to a remote server.
 
-For more docker specific examples and an explanation on how I manage secrets in this python example
-project see [here](#common-mistakes).
+***REWRITE THIS SENTENCE*** A full example of instantiated best practices in Python and also other Docker-specific examples are available [here](#common-mistakes).
 
 # Docker
-This is a short overview that focuses on some of the most widely used pieces of docker. This is not
-a comprehensive docker guide, but rather a guide on what you need to know to start using docker
-in production. If you would like to delve into docker further start by [reading the docs](https://docs.docker.com/)
+
+The following information is a short overview focusing on widely used aspects of Docker. This information is not intended as a comprehensive Docker guide and should not be used as such. A more comprehensive exploration into Docker can be found by [reading the docs](https://docs.docker.com/)
 
 ## Common Mistakes
 
 ### Secrets
-Do NOT hard code any secrets in a dockerfile or any other file in ANY git repo. The best practice
+As always, the best practice is for users to never hard code secrets in a file which may be released to the public for any reason. For example, secrets should never be stored in a dockerfile or any file in a git repo. Within Docker, the best practice
 is to use a secret management solution (AWS secrets, GCP secrets, Azure key-vault) and set those
-values to environment variables in the ENTRYPOINT. This ensures if your docker container gets
+values to environment variables in the ENTRYPOINT. This ensures if your docker image gets
 released to the public no one can access anything private.
 
 ### Credentials (AWS, Azure, GCP, ect...)
-Do NOT include your IAM or other credentials in your container! This includes hard
-coding them in a .env file (that is not included in a .dockerignore), config file, Dockerfile,
-or any other file that is included in your docker build. The correct way to pass credentials to a
-container is through run time variables. This is how hosting services do it. For example: If you
-are running a docker container using AWS docker service (ECS) AWS will pass the IAM
+Do NOT include your IAM or other credentials in your container! Note that hard coding these credentials in the following file types/locations should be considered as including them in your container:
+1. in .env file (that is not included in a .dockerignore),
+2. config file,
+3. Dockerfile,
+4. any other file that is included in your docker build.
+
+The correct way to pass credentials to a container is through runtime variables, and hosting services use this practice. For example: if you
+are running a docker container using AWS docker service (ECS), AWS will pass the IAM
 (AWS username and password) into the running container via environment variables that do NOT
 persist over restarts<sup id="a1">[1](#f1)</sup>.
 
-To do this yourself use `docker run -e <key>=<value> ...` This is explained in more depth in the
+To complete this process yourself, use `docker run -e <key>=<value> ...` This process is explained in more depth in the
 [docker run section](#run) of the README.
 
 ## Basics
