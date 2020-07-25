@@ -61,38 +61,38 @@ To complete this process yourself, use `docker run -e <key>=<value> ...` This pr
 For more terminology see the [docker glossary](https://docs.docker.com/glossary/)
 
 ### Overview
-Docker concepts can be described in terms of VMs and OSs. A docker `image` can be thought of as the base OS that
-runs in a VM. You choose the OS, install everything you need and run your code in it then run your code.
-This would be the container. Base os + installing stuff + instructions on how to running your code.
+The core Docker concepts can be described in terms of VMs and OSs. A docker `image` is analogus to
+the OS that runs in a VM. You choose the OS, install everything you need and run your code in it then run it.
+The running OS would be the container. Base os + installing stuff + instructions on how to run your code.
 The docker runtime is analogues to the VM program (VMWare or other).
 
 ### Phases
-Docker has two main phases, building a docker container, and running the docker container. You can
-also Push a docker container to a remote docker repo to run on a hosted machine.
+Docker has two main phases, building a docker image then running a docker container. You can
+also Push a docker image to a remote docker repo to run on a hosted machine.
 
-The two main ways you execute the docker run and build phases are using either the normal docker
-runtime via the CLI: `docker build ...`, `docker run ...` or using the docker-compose
+There are two main ways to execute the docker run and build phases. Either use the normal docker
+runtime via the CLI: `docker build ...`, `docker run ...` or use the docker-compose
 utility. See the [docker-compose](#docker-compose) section for more details.
 
 #### Build
-During the `build` phase the docker runtime parses your Dockerfile, creates layers based on the steps
-contained within, executes the steps, and saves the resulting image to be later run as a container
-by the docker runtime.
+During the `build` phase the docker runtime parses the Dockerfile, creates layers based on the steps
+in the Dockerfile, executes the steps (except for the CMD/ENTRYPOINT steps), then saves the
+resulting image to disk.
 
-Practically docker build take your dockerfile, gets the image you specified in the FROM statement, executes the
-remaining steps and creates a new image. All images are built from a dockerfile and create a new image
-which in turn can be used in another dockerfile to make a new image ect... or run as a container.
+All images are built using a dockerfile and result in a new image, which, in turn can be used in
+another dockerfile to make a new image and so on, or the image can be run as a container.
 
-In practice this means if any changes are made to files or configurations that are put into a build
-layer you must rebuild the container for those changes to take effect. Once an image is built it
-does not change. So when you reboot a container the container state will be reverted back to the state
-of the image used to run the container.
+In practice this means any changes that are made to files or configurations in the build phase
+requite rebuild the container for those changes to take effect. Once an image is built it
+does not change during the run phase. When a container is restarted it's state will be reverted back
+ to that of the image being run.
 
-NOTE: The major exception to this is when copying your source files over to the docker container
-(`ADD . /opt` in the example Dockerfile) if you are mounting your source code as a volume during
+NOTE:
+
+The major exception to this is when copying your source files over to the docker container
+(`ADD . /opt` in the example Dockerfile). If the source code is mounted to the contianer;
 `docker run` (`docker run -v /$PWD:/opt` in the `start_locally.sh` example script) any code changes
-you make will be reflected in the container immediately. You will not even have to restart the
-running container.
+ will be reflected in the running container. No restart necessary.
 
 **Common build command:**
 `docker build -t example:local .`
@@ -104,10 +104,11 @@ running container.
 `.` is telling docker to use the "Dockerfile" in the current directory. This could be a path to any
 directory. `~/example_project/Dockerfile` for example.
 
-#### Run
+See [the docker build docs](https://docs.docker.com/engine/reference/commandline/build/) for more information.
 
-`docker run` sends the built docker image to the docker runtime creating a container. The runtime loads the layers
-that were built and executes the `ENTRYPOINT` and `CMD` clauses in your dockerfile. You can overwrite
+#### Run
+`docker run` sends specified image to the docker runtime creating a container. The runtime loads the layers
+that were previously built and executes the `ENTRYPOINT` and `CMD` clauses in your dockerfile. You can overwrite
 those at runtime like so
 `docker run <optional --entrypoint [new command]> <other flags/arguments> [docker_image_name] <optional overide for CMD">`
 
@@ -126,7 +127,7 @@ environment, mostly, isolated from your system.
 
 
 #### Push
-docker push is very similar to git push. After building a docker image locally you "push" it to
+docker push is very similar to git push. After building a docker image locally "push" it to
 a remote docker store; either privately hosted on a cloud provider, or the docker hub public store if you
 want your container to be publicly available.
 
@@ -135,65 +136,74 @@ docs.
 
 ### Dockerfile
 This is one of the most important pieces of any dockerized project. It is the blueprint that all
-of your images are built from and containers run. A dockerfile must contain some basic pieces; FROM,
-ENTRYPOINT, and CMD. Entrypoint can be excluded, but is almost always uses.
+of your images are built and containers run from. A dockerfile must contain some basic pieces; FROM,
+ENTRYPOINT, and CMD. Entrypoint can be omitted, but is almost always uses.
 
 #### Syntax overview
-Each line start with a keyword. Common ones are
+Each line start with a keyword. Common ones are:
 
 `FROM, WORKDIR, ENV, COPY, RUN, ARG, ADD, ENTRYPOINT, CMD`.
 
-Following each keyword you have either plain strings (shell form) or a JSON list (exec form) telling
- the keyword what to do. Many of the keywords accept exec and shell form. Example:
+Following each keyword you have either a plain string (shell form), or a JSON list (exec form).
+Many keywords accept both exec and shell form. Example use of the `CMD` keyword:
 
 `CMD ["python", "main.py"]` JSON array (exec form). This is the preferred form for commands that support it.
-
 NOTE: The exec form uses double quotes " not single '
 
 `CMD python main.py` shell form.
 
 #### FROM clause
-This is the "OS" (`image`) that you will add to and eventually run your code using. This does not
-have to be a barebones linux distribution (Debian, Ubuntu ect...) but can be another image built on
-top of a distro. In this project the python image is used. The python image is just Debian with some
-libraries/packages installed on top of it to enable python run out of the box.
+This is the `image` is being built upon. The image can be a barebones linux distribution (Debian, Ubuntu ect...),
+but, more commonly is an image built on a bare distro giving it additional functionality and further
+easy of use. This project uses the python image. The python image built on Debian and has some
+addition components allowing it to easly almost every python project out of the box.
 
-The best way to select the `image` you want to build on is to go to [DockerHub](https://hub.docker.com/)
-and search for the language, framework, db, or other that you will be using.
-These images are usually ["Docker Official Images"](https://docs.docker.com/docker-hub/official_images/)
-and will "Just Work"TM.
+To choose the best `image`  o build on it is common to search [DockerHub](https://hub.docker.com/)
+for the language, framework, or db the project will be using. These images are usually
+["Docker Official Images"](https://docs.docker.com/docker-hub/official_images/) and will work out
+of the box.
 
 #### ENTRYPOINT clause
-ENTRYPOINT is one of two main clauses that are executed during the `docker run` phase. ENTRYPOINT
-specifies a command that is executed just before the `CMD` clause.
+ENTRYPOINT is one of two main clauses that are executed during the `docker run` phase. The ENTRYPOINT
+clause is executed just before the `CMD` clause.
 
 ENTRYPOINT is frequently used to finish setting up the runtime environment. This can involve setting
-environment variables containing secrets whether they be DB secrets, encryption keys, or something
-else you do not want the entire world to know.
+environment variables containing secrets, DB secrets, encryption keys, or other.
+
+A typical ENTRYPOINT clause will look like:
+
+`ENTRYPOINT ["/bin/bash", "entrypoint.sh"]` This is in the exec form. ENTRYPOINT simply has bash
+run the entrypoint.sh script. `entrypoint.sh` in turn sets env vars using `export`. `entrypoint.sh`
+is a fully fledged bash script and as such can do almost anything. See the entrypoint.sh script
+included in this project for more examples.
 
 NOTE: Anything set during the `docker run` phase will not persist across docker container instances.
-This makes setting secrets in ENTRYPOINT safe. DO NOT hard code the secrets in whatever script
-ENTRYPOINT calls! Use the entrypoint script to pull secrets from a secrets manager.
+Because of the lack of persistence setting secrets in ENTRYPOINT much safer than setting them
+in another build step. Still do not hard code the secrets in the script ENTRYPOINT calls.
+The entrypoint script should make calls to the secrets manager of your choice using the credentials
+passed to the `docker run` command.
 
 #### CMD clause
 [Docs](https://docs.docker.com/engine/reference/builder/#cmd)
 
-This is where you finally get to run your code! The CMD clause is the last thing docker executes, and
-is used to run your project. The Dockerfile CMD can be overwritten in `docker run` phase, see docker
-run section for more details.
+The CMD clause is the last thing docker executes (main.py in this example project).
+The Dockerfile CMD can be overwritten in `docker run` phase, see docker run section for more details.
 
 A normal use would be: `CMD ["python", "main.py"]` This tells docker you want to have the python
-runtime execute your main.py file.
+interpreter execute your main.py file.
 
 ### docker-compose
 docker-compose uses an additional YAML file to help streamline spinning up, linking, and tearing
-down one (or many) docker containers. It is used to replace (wrap) the more "normal" `docker run...`
-and `docker build ...` steps to make a more streamlined experience.
+down one (or many) docker containers. docker-compose is especially useful when testing locally.
+It is used to replace (wrap) the more "normal" `docker run...` and `docker build ...` steps.
 
 [Here](https://docs.docker.com/compose/) is a link to the official docker-compose docs.
 
 Even though docker-compose uses a separate YAML file you still need to have written a Dockerfile
 that you reference in the docker-compose.yaml.
+
+### Workflow
+
 
 # pip-tools
 pip-tools is made up of 2 main parts. pip-compile and pip-sync. We will not be using pip-sync in
