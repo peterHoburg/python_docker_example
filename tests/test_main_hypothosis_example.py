@@ -1,4 +1,4 @@
-from main import hypothesis_example
+from python_docker_example.main import hypothesis_example
 
 
 def hypothesis_example_test():

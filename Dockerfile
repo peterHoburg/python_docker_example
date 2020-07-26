@@ -32,11 +32,11 @@ RUN bash install_dev_requirements.sh
 
 # Always have this as far down as you can. If anything being coppied in this step changes all steps
 #   run after it will be rerun instead of using existing container layers.
-ADD . /opt
+ADD . /optex
 
 # This is executed during docker run. This is a good place to set DB and other secrets to env vars
 ENTRYPOINT ["/bin/bash", "entrypoint.sh"]
 
 # This is the last thing docker runs. You can overwrite it like so:
 #   docker run -it <docker_container_name:tag> <command_to_run IE /bin/bash>
-CMD ["python", "main.py"]
+CMD ["python", "python_docker_example/main.py"]

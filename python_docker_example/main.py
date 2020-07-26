@@ -1,8 +1,8 @@
-from log_config import log
+from python_docker_example.log_config import log
 
 
 def main() -> None:
-    log.debug("hello world.")
+    log.info("hello world.")
 
 
 def hypothesis_example():
