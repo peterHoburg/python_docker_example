@@ -1,62 +1,46 @@
 # Setup
-To follow this readme and run this project, first install docker and docker-compose.
+To follow this readme and run this project, first install Docker and docker-compose.
 Please note that an IDE is optional.
 
 [Installing docker](https://docs.docker.com/get-docker/)
 
 [Installing docker-compose](https://docs.docker.com/compose/install/)
 
+# Example Project Overview
+
+
 # General Best practices
-The best practices outlined in this documentation can be applied to more than Docker and Docker-compose.
+The best practices outlined in this documentation can be applied to more than just Docker,
+docker-compose and python.
 
 ## Secrets management
-When deciding where to store secrets or credentials, the first consideration should be whether the information will be synced to a cloud service. Common services which would sync information to the cloud
+When deciding where to store secrets or credentials, the first consideration should be whether the
+information will be synced to a cloud service. Common services that sync information to the cloud
 include GIT, Docker, Google Drive, and Dropbox.
 
-A preferable option instead would be to utilize your cloud service's secrets manager, as secrets managers require a second set of credentials for access. Those credentials, then, could be stored in your cloud provider's
-CLI's default location on your local machine or another location which you are certain will never
-be synced to a remote service. `~/.aws/credentials` is an example of such a location on a Linux
-machine using the AWS CLI. ***REWRITE THIS SENTENCE****
+A preferable option instead would be to utilize your cloud service's secrets manager, as secrets
+managers require a second set of credentials for access. Those credentials, then, could be stored in your cloud provider's
+CLI's default location on your local machine or another location that you are certain will never
+be synced to a remote service. For example, `~/.aws/credentials` is the default location
+for the AWS CLI on a linux machine.
 
-Alternatively, you could store some secrets in a .env file which is then loaded automatically into your environment
-while executing code. When using this method, a note of caution: using a .env file requires that you add the file to .dockerignore and .gitignore
-files and other ignore lists to ensure that no software unintentionally syncs it to a remote server.
-
-***REWRITE THIS SENTENCE*** A full example of instantiated best practices in Python and also other Docker-specific examples are available [here](#common-mistakes).
+Alternatively, you could store some secrets in a .env file that is then loaded automatically into your environment
+when code is executed. When using this method, a note of caution: using a .env file requires that
+you add the file to the .dockerignore and .gitignore files and other ignore lists to ensure that
+no software unintentionally syncs it to a remote server.
 
 # Docker
 
-The following information is a short overview focusing on widely used aspects of Docker. This information is not intended as a comprehensive Docker guide and should not be used as such. A more comprehensive exploration into Docker can be found by [reading the docs](https://docs.docker.com/)
-
-## Common Mistakes
-
-### Secrets
-As always, the best practice is for users to never hard code secrets in a file which may be released to the public for any reason. For example, secrets should never be stored in a dockerfile or any file in a git repo. Within Docker, the best practice
-is to use a secret management solution (AWS secrets, GCP secrets, Azure key-vault) and set those
-values to environment variables in the ENTRYPOINT. This ensures if your docker image gets
-released to the public no one can access anything private.
-
-### Credentials (AWS, Azure, GCP, ect...)
-Do NOT include your IAM or other credentials in your container! Note that hard coding these credentials in the following file types/locations should be considered as including them in your container:
-1. in .env file (that is not included in a .dockerignore),
-2. config file,
-3. Dockerfile,
-4. any other file that is included in your docker build.
-
-The correct way to pass credentials to a container is through runtime variables, and hosting services use this practice. For example: if you
-are running a docker container using AWS docker service (ECS), AWS will pass the IAM
-(AWS username and password) into the running container via environment variables that do NOT
-persist over restarts<sup id="a1">[1](#f1)</sup>.
-
-To complete this process yourself, use `docker run -e <key>=<value> ...` More detailed instructions are available in the
-[docker run section](#run) of the README.
+The following information is a short overview focusing on widely used aspects of Docker.
+This information is not intended as a comprehensive Docker guide and should not be used as such.
+A more comprehensive exploration into Docker can be found by [reading the docs](https://docs.docker.com/)
 
 ## Basics
 
 ### Terminology
 * Image: the basis of a container. Images do not have state. Public images can be found on the [docker hub](https://hub.docker.com/).
 * Container: Runtime instance of an image. Comprised of an image + execution environment + instructions.
-* Docker runtime/desktop: the program which runs your container.
+* Docker runtime/desktop: the program that runs your container.
 
 For additional terminology, please review the [docker glossary](https://docs.docker.com/glossary/)
 
@@ -99,7 +83,7 @@ file changes. Use `-v /$PWD:/opt` as a part of the Docker run command to mount a
 
 `example:local` is the `name:tag`
 
-`.` is telling docker to use the "Dockerfile" in the current directory. '.' could also be a path to any
+`.` is telling docker to use the Dockerfile in the current directory. `.` could also be a path to any
 directory. `~/example_project/Dockerfile` is an example.
 
 See [the docker build docs](https://docs.docker.com/engine/reference/commandline/build/) for more information.
@@ -207,6 +191,31 @@ Even though docker-compose uses a separate YAML file you still need to have a Do
 
 ### Workflow
 
+## Common Mistakes
+
+### Secrets
+Azure https://docs.microsoft.com/en-us/azure/developer/python/azure-sdk-authenticate?tabs=cmd
+
+As always, the best practice is for users to never hard code secrets in a file which may be released to the public for any reason. For example, secrets should never be stored in a dockerfile or any file in a git repo. Within Docker, the best practice
+is to use a secret management solution (AWS secrets, GCP secrets, Azure key-vault) and set those
+values to environment variables in the ENTRYPOINT. This ensures if your docker image gets
+released to the public no one can access anything private.
+
+### Credentials (AWS, Azure, GCP, ect...)
+Do NOT include your IAM or other credentials in your container! Note that hard coding these credentials in the following file types/locations should be considered as including them in your container:
+1. in .env file (that is not included in a .dockerignore),
+2. config file,
+3. Dockerfile,
+4. any other file that is included in your docker build.
+
+The correct way to pass credentials to a container is through runtime variables, and hosting services use this practice. For example: if you
+are running a docker container using AWS docker service (ECS), AWS will pass the IAM
+(AWS username and password) into the running container via environment variables that do NOT
+persist over restarts<sup id="a1">[1](#f1)</sup>.
+
+To complete this process yourself, use `docker run -e <key>=<value> ...` More detailed instructions are available in the
+[docker run section](#run) of the README.
+
 
 # pip-tools
 pip-tools is made up of 2 main parts. pip-compile and pip-sync. We will not be using pip-sync in
@@ -270,7 +279,7 @@ In addition to the main library being used to run the test cases, `hypothesis` c
 `hypothesis` works best with pytest, but will work well with other libraries. Please read the
 [hypothesis'](https://hypothesis.readthedocs.io/en/latest/) docs for more information.
 
-Python is a dynamically typed language and as such has the tendencie to have type conversion bugs sneak in.
+Python is a dynamically typed language and as such has the tendency to have type conversion bugs sneak in.
 Fortunately there are many libraries designed to help catch typing issues. The most common
 one being `mypy`. See [Here](https://mypy.readthedocs.io/en/stable/) for the mypy docs. Running mypy
 as a pre merge or pre commit git hook can help catch bugs before they hit production.

@@ -95,5 +95,6 @@ celerybeat-schedule
 # mypy
 .mypy_cache/
 
+
 # pycharm
 .idea/*
