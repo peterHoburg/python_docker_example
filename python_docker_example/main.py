@@ -5,7 +5,7 @@ def main() -> None:
     log.info("hello world.")
 
 
-def hypothesis_example():
+def hypothesis_example(json_in):
     pass
 
 

@@ -4,4 +4,6 @@
 ipdb
 pytest
 hypothesis
+hypothesis[cli]
+hypothesis[pytest]
 mypy

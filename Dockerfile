@@ -13,23 +13,28 @@ ENV PYTHONPATH $PYTHONPATH:/opt
 COPY ["./requirements/requirements.txt", "./requirements/requirements.txt"]
 RUN pip --use-feature=2020-resolver install -r ./requirements/requirements.txt
 
-# These are only availiable during a docker build to have them persist into a docker run use ENV
-ARG ENVIRONMENT=local
-ARG DEBUG=false
+# This is only availiable during a docker build to have them persist into a docker run use ENV
 ARG DEV=false
 
-# These can not be set in a docker build. Using the -e in a docker run will change these during runtime
-ENV ENVIRONMENT="${ENVIRONMENT}"
-ENV DEBUG="${DEBUG}"
+# This can not be set in a docker build. Using the -e in a docker run will change these during runtime
 ENV DEV="${DEV}"
 
 # This allows you to install dev dependencies in a docker layer negating the need to install them
 #   every time a container is run.
 # WARNING: This script uses the ARG/ENV DEV value to decide if the requirements-dev.txt should be installed
-COPY ["./requirements/requirements.txt", "./requirements/requirements.txt"]
+COPY ["./requirements/requirements-dev.txt", "./requirements/requirements-dev.txt"]
 COPY ["./requirements/install_dev_requirements.sh", "./requirements/install_dev_requirements.sh"]
 RUN bash ./requirements/install_dev_requirements.sh
 RUN pip check
+
+# These are only availiable during a docker build to have them persist into a docker run use ENV
+ARG ENVIRONMENT=local
+ARG DEBUG=false
+
+# These can not be set in a docker build. Using the -e in a docker run will change these during runtime
+ENV ENVIRONMENT="${ENVIRONMENT}"
+ENV DEBUG="${DEBUG}"
+
 
 # Always have this as far down as you can. If anything being coppied in this step changes all steps
 #   run after it will be rerun instead of using existing container layers.
