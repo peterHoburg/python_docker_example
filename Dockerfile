@@ -7,11 +7,16 @@
 # Python 3.8 UPDATED ON 07-17-2020
 FROM python@sha256:e9b7e3b4e9569808066c5901b8a9ad315a9f14ae8d3949ece22ae339fff2cad0
 
+RUN adduser --system --group --shell /bin/sh default \
+ && mkdir /home/default/bin
+USER default
+
 WORKDIR /opt
-ENV PYTHONPATH $PYTHONPATH:/opt
+ENV PYTHONPATH $PYTHONPATH:/opt:/home/default/.local/bin
+ENV PATH $PATH:/home/default/.local/bin
 
 COPY ["./requirements/requirements.txt", "./requirements/requirements.txt"]
-RUN pip --use-feature=2020-resolver install -r ./requirements/requirements.txt
+RUN pip --use-feature=2020-resolver install --user -r ./requirements/requirements.txt
 
 # This is only availiable during a docker build to have them persist into a docker run use ENV
 ARG DEV=false
