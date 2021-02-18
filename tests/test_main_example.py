@@ -1,4 +1,4 @@
-from python_docker_example.main import main
+from src.main import main
 
 
 def test_main():

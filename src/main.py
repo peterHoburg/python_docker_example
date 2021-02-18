@@ -1,4 +1,4 @@
-from python_docker_example.log_config import log
+from src.log_config import log
 
 
 def main() -> None:

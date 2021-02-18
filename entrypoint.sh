@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
-export ENV_VAR_NAME="VALUE"
-# TODO add Azure secret fetching example
+if [ "$DEV" == "true" ]; then
+  export PYTHONDEVMODE=1
+  export PYTHONTRACEMALLOC=1
+fi
+
 exec $@
